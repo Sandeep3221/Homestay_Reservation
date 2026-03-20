@@ -26,7 +26,7 @@ const Reservation = ({ token }) => {
   const fetchReservation = async () => {
     try {
       setLoading(true)
-      const response = await axios.get(backendUrl + '/api/reservation/get')
+      const response = await axios.get(backendUrl + '/api/reservation/get',{headers: { token }})
       if (response.data.reservations) {
         setReservation(response.data.reservations)
       }
