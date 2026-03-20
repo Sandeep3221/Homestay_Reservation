@@ -13,6 +13,7 @@ function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const dropdownRef = useRef(null);
+  const navRef = useRef(null);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -39,6 +40,9 @@ function Navbar() {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
         setDropdownOpen(false)
       }
+      if (navRef.current && !navRef.current.contains(e.target)) {
+        setIsOpen(false)
+      }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -56,13 +60,14 @@ function Navbar() {
   }
 
   const navLinks = [
+    { name: 'Home', path: '/', id: null },
     { name: 'Explore', path: '/', id: 'bookings' },
     { name: 'Facilities', path: '/', id: 'facilities' },
     { name: 'My Bookings', path: '/Mybookings', id: null },
   ];
 
   return (
-    <nav className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
+    <nav ref={navRef} className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 ${
       scrolled ? 'bg-white/90 backdrop-blur-md shadow-sm py-3' : 'bg-transparent py-5'
     }`}>
       <div className="max-w-7xl mx-auto px-6 md:px-10 flex items-center justify-between">
@@ -95,43 +100,53 @@ function Navbar() {
           ))}
         </div>
 
-        <div className="hidden md:flex items-center gap-4">
+        <div className="flex items-center gap-4">
           {!user ? (
-            <div className="flex items-center gap-2">
+            <>
+              <div className="hidden md:flex items-center gap-2">
+                <button 
+                  onClick={() => navigate('/login')} 
+                  className={`px-5 py-2 text-sm font-bold transition-all cursor-pointer ${
+                    scrolled ? 'text-slate-700 hover:text-emerald-600' : 'text-white hover:text-emerald-300'
+                  }`}
+                >
+                  Sign In
+                </button>
+                <button 
+                  onClick={() => navigate('/signup')} 
+                  className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95 cursor-pointer"
+                >
+                  Get Started
+                </button>
+              </div>
               <button 
-                onClick={() => navigate('/login')} 
-                className={`px-5 py-2 text-sm font-bold transition-all cursor-pointer ${
-                  scrolled ? 'text-slate-700 hover:text-emerald-600' : 'text-white hover:text-emerald-300'
+                onClick={() => setIsOpen(!isOpen)} 
+                className={`md:hidden p-2 rounded-lg transition-colors cursor-pointer ${
+                  scrolled ? 'text-slate-900 hover:bg-slate-100' : 'text-white hover:bg-white/10'
                 }`}
               >
-                Sign In
+                {isOpen ? <X size={24} /> : <Menu size={24} />}
               </button>
-              <button 
-                onClick={() => navigate('/signup')} 
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-emerald-200 transition-all active:scale-95 cursor-pointer"
-              >
-                Get Started
-              </button>
-            </div>
+            </>
           ) : (
             <div className="relative" ref={dropdownRef}>
               <button
                 onClick={() => setDropdownOpen(!dropdownOpen)}
-                className={`flex items-center gap-3 p-1.5 pr-4 rounded-full transition-all cursor-pointer border ${
+                className={`flex items-center gap-2 md:gap-3 p-1.5 md:pr-4 rounded-full transition-all cursor-pointer border ${
                   scrolled ? 'bg-slate-50 border-slate-200' : 'bg-white/10 border-white/20'
                 }`}
               >
-                <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow-md">
+                <div className="w-8 h-8 bg-emerald-600 rounded-full flex items-center justify-center text-white shadow-md shrink-0">
                   <User size={18} />
                 </div>
-                <span className={`text-sm font-bold ${scrolled ? 'text-slate-700' : 'text-white'}`}>
+                <span className={`hidden md:block text-sm font-bold truncate max-w-37.5 ${scrolled ? 'text-slate-700' : 'text-white'}`}>
                   {user.userName}
                 </span>
-                <ChevronDown size={14} className={scrolled ? 'text-slate-400' : 'text-white/60'} />
+                <ChevronDown size={14} className={`hidden md:block shrink-0 ${scrolled ? 'text-slate-400' : 'text-white/60'}`} />
               </button>
 
               {dropdownOpen && (
-                <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden">
+                <div className="absolute right-0 mt-3 w-56 bg-white rounded-2xl shadow-2xl border border-slate-100 overflow-hidden origin-top-right">
                   <div className="px-4 py-3 border-b border-slate-50 bg-slate-50/50">
                     <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Account</p>
                     <p className="text-sm font-bold text-slate-800 truncate">{user.email}</p>
@@ -153,18 +168,9 @@ function Navbar() {
             </div>
           )}
         </div>
-
-        <button 
-          onClick={() => setIsOpen(!isOpen)} 
-          className={`md:hidden p-2 rounded-lg transition-colors cursor-pointer ${
-            scrolled ? 'text-slate-900 hover:bg-slate-100' : 'text-white hover:bg-white/10'
-          }`}
-        >
-          {isOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
       </div>
 
-      {isOpen && (
+      {isOpen && !user && (
         <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-slate-100 p-6 space-y-4 shadow-xl">
           {navLinks.map((link) => (
             <button
@@ -179,16 +185,8 @@ function Navbar() {
             </button>
           ))}
           <div className="pt-4 border-t border-slate-100 flex flex-col gap-3">
-            {!user ? (
-              <>
-                <button onClick={() => navigate('/login')} className="w-full py-3 text-slate-700 font-bold border border-slate-200 rounded-xl">Sign In</button>
-                <button onClick={() => navigate('/signup')} className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-100">Get Started</button>
-              </>
-            ) : (
-              <button onClick={handleLogout} className="w-full py-3 text-rose-500 font-bold bg-rose-50 rounded-xl flex items-center justify-center gap-2">
-                <LogOut size={18} /> Logout
-              </button>
-            )}
+            <button onClick={() => navigate('/login')} className="w-full py-3 text-slate-700 font-bold border border-slate-200 rounded-xl">Sign In</button>
+            <button onClick={() => navigate('/signup')} className="w-full py-3 bg-emerald-600 text-white font-bold rounded-xl shadow-lg shadow-emerald-100">Get Started</button>
           </div>
         </div>
       )}
